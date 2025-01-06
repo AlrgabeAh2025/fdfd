@@ -1,8 +1,8 @@
-name: Windows Build 
+name: Android Build
 
 on:
   push:
-    branches: 
+    branches:
       - main
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -35,16 +35,23 @@ jobs:
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
-    - name: Flet Build Windows
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 33
+        build-tools: 33.0.0
+        target: android-33
+
+    - name: Flet Build Android
       run: |
         flutter config --no-analytics
-        flet build windows --verbose --no-rich-output --build-number=$env:BUILD_NUMBER --build-version=$env:BUILD_VERSION
+        flutter build apk --release --no-sound-null-safety --build-number=$BUILD_NUMBER --build-name=$BUILD_VERSION
 
-    - name: Upload Windows Artifact
-      uses: actions/upload-artifact@v4.3.4
+    - name: Upload Android Artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: windows-build-artifact
-        path: build/windows
+        name: android-build-artifact
+        path: build/app/outputs/flutter-apk/app-release.apk
         if-no-files-found: error
         overwrite: false
 
@@ -57,5 +64,5 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           version: v${{ env.BUILD_VERSION }}
-          assets: '[ "windows-build-artifact" ]'
+          assets: '[ "android-build-artifact" ]'
           overwrite: false
