@@ -188,7 +188,7 @@ jobs:
         java-version: '17'
 
     - name: Accept Android Licenses
-      run: flutter doctor --android-licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
     - name: Flet Build APK
       run: |
