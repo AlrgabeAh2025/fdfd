@@ -17,24 +17,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # التحقق من الكود من المستودع
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # إعداد Python (إذا كان مطلوبًا)
     - name: Setup Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
+    # تثبيت الاعتمادات الخاصة بـ Python (إذا لزم الأمر)
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    # إعداد Flutter
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
+    # إعداد Android SDK
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
       with:
@@ -42,10 +47,18 @@ jobs:
         build-tools: 33.0.0
         target: android-33
 
-    - name: Flet Build Android
-      run: |
-        flutter build apk --release --build-number=$BUILD_NUMBER --build-name=$BUILD_VERSION
+    # الانتقال إلى مسار مشروع Flutter إذا كان في مجلد فرعي
+    - name: Navigate to Flutter Project
+      run: cd my_flutter_project # عدّل هذا المسار إذا كان المشروع في مجلد فرعي
 
+    # بناء APK
+    - name: Build Android APK
+      run: |
+        flutter clean
+        flutter pub get
+        flutter build apk --release --build-number=${{ env.BUILD_NUMBER }} --build-name=${{ env.BUILD_VERSION }}
+
+    # رفع الـ APK كـ Artifact
     - name: Upload Android Artifact
       uses: actions/upload-artifact@v4
       with:
